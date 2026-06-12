@@ -100,6 +100,8 @@ CMake 会自动执行：
 
 如果本地安装了这些库并导出对应 CMake package，工程会自动打开相应编译宏；如果没有安装，项目仍会以当前内置后备实现运行，避免原型结构混乱。
 
+在无桌面图形环境的 CI / sandbox 中，工程会退化到 **headless gameplay self-check**：不创建窗口，但仍验证 XML 动画加载、固定步进、射击命中和得分主链路，方便持续集成验证。
+
 ## XML 动画格式
 
 `assets/enemy_anim.xml` 使用轻量格式定义帧 UV 源数据，例如：

@@ -18,9 +18,39 @@ constexpr float kFixedStep = 1.0f / 120.0f;
 }  // namespace
 
 bool GameApp::initialize() {
+  const auto finalizeGameplaySetup = [this]() -> bool {
+    if (!animationSet_.loadFromXml("assets/enemy_anim.xml")) {
+      std::fprintf(stderr, "Failed to load sprite animation XML.\n");
+      return false;
+    }
+    if (!physicsWorld_.initialize()) {
+      std::fprintf(stderr, "Failed to initialize physics world.\n");
+      return false;
+    }
+    physicsWorld_.resetPlayer({0.0f, 0.0f, 6.0f});
+    camera_.bindToPlayerFeet(physicsWorld_.playerFeetPosition());
+    particleSystem_.initialize();
+
+    const auto* idleClip = animationSet_.findClip("idle");
+    if (idleClip == nullptr) {
+      std::fprintf(stderr, "idle clip missing in enemy_anim.xml\n");
+      return false;
+    }
+
+    enemies_.clear();
+    enemies_.emplace_back(0, glm::vec3(-2.5f, 1.0f, -4.5f), 0.75f, idleClip);
+    enemies_.emplace_back(1, glm::vec3(0.0f, 1.0f, -7.0f), 0.75f, idleClip);
+    enemies_.emplace_back(2, glm::vec3(3.0f, 1.0f, -5.5f), 0.75f, idleClip);
+    for (auto& enemy : enemies_) {
+      enemy.update(0.0f, physicsWorld_);
+    }
+    return true;
+  };
+
   if (!glfwInit()) {
-    std::fprintf(stderr, "glfwInit failed\n");
-    return false;
+    std::fprintf(stderr, "glfwInit failed, switching to headless gameplay self-check mode.\n");
+    headlessMode_ = true;
+    return finalizeGameplaySetup();
   }
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -50,42 +80,29 @@ bool GameApp::initialize() {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
 
-  if (!animationSet_.loadFromXml("assets/enemy_anim.xml")) {
-    std::fprintf(stderr, "Failed to load sprite animation XML.\n");
+  if (!finalizeGameplaySetup()) {
     return false;
   }
   if (!enemyTexture_.loadFromFile("assets/enemy_atlas.png")) {
     std::fprintf(stderr, "Failed to load sprite atlas texture.\n");
     return false;
   }
-  if (!physicsWorld_.initialize()) {
-    std::fprintf(stderr, "Failed to initialize physics world.\n");
-    return false;
-  }
-  physicsWorld_.resetPlayer({0.0f, 0.0f, 6.0f});
-  camera_.bindToPlayerFeet(physicsWorld_.playerFeetPosition());
-  particleSystem_.initialize();
   audioSystem_.initialize("assets/shoot.wav", "assets/shoot.wav");
   hudLayer_.initialize(window_);
   hudLayer_.setRuntimeFlags(physicsWorld_.hasJoltHook(), particleSystem_.hasEffekseerHook(), false);
-
-  const auto* idleClip = animationSet_.findClip("idle");
-  if (idleClip == nullptr) {
-    std::fprintf(stderr, "idle clip missing in enemy_anim.xml\n");
-    return false;
-  }
-
-  enemies_.emplace_back(0, glm::vec3(-2.5f, 0.0f, -4.5f), 0.75f, idleClip);
-  enemies_.emplace_back(1, glm::vec3(0.0f, 0.0f, -7.0f), 0.75f, idleClip);
-  enemies_.emplace_back(2, glm::vec3(3.0f, 0.0f, -5.5f), 0.75f, idleClip);
-  for (auto& enemy : enemies_) {
-    enemy.update(0.0f, physicsWorld_);
-  }
 
   return true;
 }
 
 int GameApp::run() {
+  if (headlessMode_) {
+    for (int step = 0; step < 6; ++step) {
+      fixedUpdate(kFixedStep);
+    }
+    handleShot();
+    return score_ > 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+  }
+
   float lastTime = static_cast<float>(glfwGetTime());
   float accumulator = 0.0f;
 
@@ -225,6 +242,10 @@ void GameApp::handleShot() {
 }
 
 void GameApp::drawScene() const {
+  if (headlessMode_) {
+    return;
+  }
+
   int framebufferWidth = 1;
   int framebufferHeight = 1;
   glfwGetFramebufferSize(window_, &framebufferWidth, &framebufferHeight);
@@ -283,7 +304,7 @@ void GameApp::drawSpawnMarkers() const {
   for (const auto& enemy : enemies_) {
     const auto& pos = enemy.position();
     glVertex3f(pos.x, 0.0f, pos.z);
-    glVertex3f(pos.x, 1.8f, pos.z);
+    glVertex3f(pos.x, pos.y + 0.8f, pos.z);
   }
   glEnd();
 }
@@ -297,7 +318,7 @@ void GameApp::drawEnemy(const fps::gameplay::EnemyActor& enemy) const {
   const float yaw = std::atan2(lookDirection.x, lookDirection.z);
 
   glm::mat4 model(1.0f);
-  model = glm::translate(model, position + glm::vec3(0.0f, 1.0f, 0.0f));
+  model = glm::translate(model, position);
   model = glm::rotate(model, yaw, glm::vec3(0.0f, 1.0f, 0.0f));
   const glm::mat4 modelView = camera_.viewMatrix() * model;
 

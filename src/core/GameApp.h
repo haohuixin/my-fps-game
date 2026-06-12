@@ -43,6 +43,7 @@ class GameApp {
   void drawEnemy(const fps::gameplay::EnemyActor& enemy) const;
 
   GLFWwindow* window_ = nullptr;
+  bool headlessMode_ = false;
   fps::core::InputState input_{};
   fps::gameplay::FirstPersonCamera camera_{};
   fps::gameplay::PlayerController playerController_{};
