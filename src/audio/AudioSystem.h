@@ -24,6 +24,7 @@ class AudioSystem {
   ma_sound* shootSound_ = nullptr;
   ma_sound* hitSound_ = nullptr;
   bool enabled_ = false;
+  bool hitEnabled_ = false;
 };
 
 }  // namespace fps::audio

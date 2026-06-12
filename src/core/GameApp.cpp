@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <GL/gl.h>
+#include "rendering/OpenGLCompat.h"
 
 #include "GL/gl3w.h"
 

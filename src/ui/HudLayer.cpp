@@ -3,8 +3,9 @@
 #include <array>
 #include <string>
 
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <GL/gl.h>
+#include "rendering/OpenGLCompat.h"
 
 namespace fps::ui {
 

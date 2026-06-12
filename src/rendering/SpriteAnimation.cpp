@@ -11,7 +11,7 @@ namespace {
 using Attributes = std::unordered_map<std::string, std::string>;
 
 Attributes parseAttributes(const std::string& line) {
-  static const std::regex kAttributeRegex(R"((\w+)="([^"]+)")");
+  static const std::regex kAttributeRegex(R"attr((\w+)="([^"]+)")attr");
   Attributes attributes;
   for (std::sregex_iterator it(line.begin(), line.end(), kAttributeRegex), end; it != end; ++it) {
     attributes[(*it)[1].str()] = (*it)[2].str();

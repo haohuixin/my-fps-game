@@ -7,7 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
-find_package(OpenGL REQUIRED)
+find_library(FPS_OPENGL_LIB NAMES GL libGL.so.1 REQUIRED)
+find_package(X11 QUIET)
 find_package(Jolt CONFIG QUIET)
 find_package(Effekseer CONFIG QUIET)
 find_package(nanogui CONFIG QUIET)
@@ -21,7 +22,10 @@ FetchContent_Declare(glm
   GIT_TAG 1.0.1
 )
 set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
+set(GLFW_BUILD_X11 ${X11_FOUND} CACHE BOOL "" FORCE)
+if(NOT X11_FOUND)
+  message(WARNING "X11 development files not found; GLFW will build with the null platform backend for headless environments.")
+endif()
 FetchContent_MakeAvailable(glfw glm)
 
 add_library(gl3w STATIC third_party/gl3w/src/gl3w.c)
@@ -67,7 +71,7 @@ target_compile_definitions(fps_game PRIVATE
   FPS_HAS_EFFEKSEER=${FPS_HAS_EFFEKSEER}
   FPS_HAS_NANOGUI=${FPS_HAS_NANOGUI}
 )
-target_link_libraries(fps_game PRIVATE glfw OpenGL::GL glm::glm gl3w)
+target_link_libraries(fps_game PRIVATE glfw glm::glm gl3w ${FPS_OPENGL_LIB})
 
 if(TARGET Jolt)
   target_link_libraries(fps_game PRIVATE Jolt)

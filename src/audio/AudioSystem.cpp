@@ -38,13 +38,9 @@ bool AudioSystem::initialize(const std::string& shootPath, const std::string& hi
 
   const bool shootLoaded = ma_sound_init_from_file(engine_, shootPath.c_str(), MA_SOUND_FLAG_DECODE, nullptr,
                                                    nullptr, shootSound_) == MA_SUCCESS;
-  const bool hitLoaded = ma_sound_init_from_file(engine_, hitPath.c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr,
-                                                 hitSound_) == MA_SUCCESS;
+  hitEnabled_ = ma_sound_init_from_file(engine_, hitPath.c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr,
+                                        hitSound_) == MA_SUCCESS;
   enabled_ = shootLoaded;
-  if (!hitLoaded && shootLoaded) {
-    ma_sound_uninit(hitSound_);
-    hitSound_ = shootSound_;
-  }
   return enabled_;
 }
 
@@ -57,7 +53,7 @@ void AudioSystem::playShoot() {
 }
 
 void AudioSystem::playHit() {
-  if (!enabled_ || hitSound_ == nullptr) {
+  if (!hitEnabled_ || hitSound_ == nullptr) {
     return;
   }
   ma_sound_seek_to_pcm_frame(hitSound_, 0);

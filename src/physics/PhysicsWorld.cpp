@@ -1,6 +1,7 @@
 #include "physics/PhysicsWorld.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include <glm/geometric.hpp>

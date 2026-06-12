@@ -1,5 +1,8 @@
 #include "gameplay/PlayerController.h"
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include <glm/geometric.hpp>
 
 #include "gameplay/FirstPersonCamera.h"

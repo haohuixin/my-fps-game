@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <GL/gl.h>
+#include "rendering/OpenGLCompat.h"
 
 namespace fps::rendering {
 
