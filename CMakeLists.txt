@@ -6,9 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
+include(CheckIncludeFileCXX)
 
 find_library(FPS_OPENGL_LIB NAMES GL libGL.so.1 REQUIRED)
 find_package(X11 QUIET)
+find_package(Threads REQUIRED)
 find_package(Jolt CONFIG QUIET)
 find_package(Effekseer CONFIG QUIET)
 find_package(nanogui CONFIG QUIET)
@@ -81,4 +83,62 @@ if(TARGET Effekseer)
 endif()
 if(TARGET nanogui)
   target_link_libraries(fps_game PRIVATE nanogui)
+endif()
+
+set(BLOXORZ_LOGIC_SOURCES
+  src/bloxorz/Game.cpp
+)
+
+enable_testing()
+
+add_executable(bloxorz_logic_tests
+  tests/bloxorz_logic_tests.cpp
+  ${BLOXORZ_LOGIC_SOURCES}
+)
+target_include_directories(bloxorz_logic_tests PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/handmade_math
+)
+add_test(NAME bloxorz_logic_tests COMMAND bloxorz_logic_tests)
+
+option(BLOXORZ_BUILD_APP "Build the Sokol Bloxorz demo app when native desktop headers are available" ON)
+check_include_file_cxx("GL/gl.h" BLOXORZ_HAS_OPENGL_HEADERS)
+check_include_file_cxx("X11/Xlib.h" BLOXORZ_HAS_X11_HEADERS)
+
+if(BLOXORZ_BUILD_APP)
+  if(UNIX AND NOT APPLE AND X11_FOUND AND BLOXORZ_HAS_OPENGL_HEADERS AND BLOXORZ_HAS_X11_HEADERS)
+    set(BLOXORZ_X11_LIBS ${X11_LIBRARIES})
+    if(DEFINED X11_X11_LIB)
+      list(APPEND BLOXORZ_X11_LIBS ${X11_X11_LIB})
+    endif()
+    if(DEFINED X11_Xi_LIB)
+      list(APPEND BLOXORZ_X11_LIBS ${X11_Xi_LIB})
+    endif()
+    if(DEFINED X11_Xcursor_LIB)
+      list(APPEND BLOXORZ_X11_LIBS ${X11_Xcursor_LIB})
+    endif()
+    list(REMOVE_DUPLICATES BLOXORZ_X11_LIBS)
+
+    add_executable(bloxorz_game
+      src/bloxorz/App.cpp
+      src/bloxorz/SokolImpl.cpp
+      ${BLOXORZ_LOGIC_SOURCES}
+    )
+    target_include_directories(bloxorz_game PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+      ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sokol
+      ${CMAKE_CURRENT_SOURCE_DIR}/third_party/handmade_math
+    )
+    target_link_libraries(bloxorz_game PRIVATE
+      ${FPS_OPENGL_LIB}
+      ${BLOXORZ_X11_LIBS}
+      ${CMAKE_DL_LIBS}
+      Threads::Threads
+      m
+    )
+  else()
+    message(WARNING
+      "Skipping bloxorz_game target: install Linux desktop OpenGL/X11 development headers "
+      "(for example libgl1-mesa-dev and xorg-dev) to build the Sokol windowed demo.")
+  endif()
 endif()
