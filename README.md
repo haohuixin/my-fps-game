@@ -3,7 +3,7 @@
 一个可运行的 C++ FPS 原型，并新增了一个独立的 **Bloxorz 3D 解谜演示**。仓库目前包含两条相互独立的入口：
 
 - `fps_game`：原有 GLFW / OpenGL / GLM FPS 原型
-- `bloxorz_game`：新增 Sokol / HandmadeMath Bloxorz 演示（在具备 Linux OpenGL/X11 开发头时启用）
+- `bloxorz_game`：新增 Sokol / HandmadeMath Bloxorz 演示（本次仓库内已接成 Linux 桌面目标，在具备 Linux OpenGL/X11 开发头时启用）
 
 FPS 原型继续按 `core / rendering / physics / gameplay / audio / ui` 模块拆分，并使用/预留以下技术栈接入点：
 
@@ -18,6 +18,8 @@ FPS 原型继续按 `core / rendering / physics / gameplay / audio / ui` 模块�
 - Jolt Physics（可选接入点）
 - Effekseer（可选接入点）
 - nanogui（可选接入点）
+
+当前 Bloxorz 的 CMake 接线明确面向 **Linux 桌面**（与现有 README 的构建说明范围一致）；代码本身保持 Sokol 风格的独立入口，但本次 PR 没有额外扩展 Windows/macOS 的仓库级构建脚本。
 
 ## 当前 FPS 原型内容
 

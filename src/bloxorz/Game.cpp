@@ -35,6 +35,9 @@ std::array<GridPos, 2> Game::occupiedCells() const {
 }
 
 bool Game::canMove(MoveDirection direction) const {
+  if (won_) {
+    return false;
+  }
   return nextState(direction).has_value();
 }
 

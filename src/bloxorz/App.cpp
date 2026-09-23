@@ -202,7 +202,12 @@ void frame(void) {
   gApp.game.update(dt);
   updateWindowTitle();
 
-  const float aspect = sapp_widthf() / sapp_heightf();
+  const float width = sapp_widthf();
+  const float height = sapp_heightf();
+  if (width <= 0.0f || height <= 0.0f) {
+    return;
+  }
+  const float aspect = width / height;
   gApp.projection = HMM_Perspective_RH_NO(0.9f, aspect, 0.1f, 100.0f);
 
   const Level& level = gApp.game.level();

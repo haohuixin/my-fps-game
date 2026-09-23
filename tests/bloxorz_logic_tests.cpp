@@ -79,6 +79,7 @@ void testWinCondition() {
   expect(game.queueMove(bloxorz::MoveDirection::Right), "second solution step should be valid");
   advanceAnimation(game);
   expect(game.won(), "standing completely on goal should win the level");
+  expect(!game.canMove(bloxorz::MoveDirection::Down), "won state should not advertise further legal moves");
   expect(!game.queueMove(bloxorz::MoveDirection::Down), "won state should ignore further movement until reset");
 }
 
